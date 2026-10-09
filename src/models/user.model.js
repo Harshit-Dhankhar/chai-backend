@@ -42,18 +42,17 @@ const userSchema=new Schema({
     required:[true , "Password is required"]
   },
   refreshToken:{
-    type:"String",
+    type:String,
   }
   
 },{timestamps:true});
 
-userSchema.pre("save",async function(next){
+userSchema.pre("save", async function(){
    
     if(this.isModified("password")){
-        this.password=await bcrypt.hash(this.password,10);
+        this.password = await bcrypt.hash(this.password, 10);
     }
-    next();
-})
+});
 
 userSchema.methods.isPasswordCorrect=async function(password){
    return await bcrypt.compare(password,this.password);
