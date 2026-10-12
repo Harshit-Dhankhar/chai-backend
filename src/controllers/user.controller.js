@@ -8,7 +8,7 @@ import { ApiResponse} from "../utils/ApiResponse.js";
 const generateAccessAndRefreshTokens=async (userId) => {
  
   try {
-    const user=await User.findOne(userId);
+    const user=await User.findById(userId);
 
    const accessToken =  user.generateAccessToken(); 
     const refreshToken= user.generateRefreshToken(); 
@@ -86,7 +86,7 @@ const registerUser=asyncHandler(async (req,res)=>{
   }
 
   return res.status(201).json(
-    new ApiResponse(200, CreatedUser,"User registered successfully")
+    new ApiResponse(201, CreatedUser,"User registered successfully")
   )
 })
 
@@ -116,19 +116,19 @@ const loginUser=asyncHandler(async (req,res)=>{
   const isPasswordValid= await user.isPasswordCorrect(password);
 
    if(!isPasswordValid){
-    ApiError(401,"Invalid user credentials");
+    throw new ApiError(401,"Invalid user credentials");
    }
 
    const {accessToken,refreshToken}= await generateAccessAndRefreshTokens(user._id);
 
-   const loggedInUser=User.findById(user._id).select("-password -refreshToken");
+   const loggedInUser=await User.findById(user._id).select("-password -refreshToken");
 
   const options={
     httpOnly:true,
     secure:true,
   }
    return res
-   .staus(200)
+   .status(200)
    .cookie("accessToken" ,accessToken,options)
    .cookie("refreshToken",refreshToken,options)
    .json(
@@ -144,11 +144,11 @@ const loginUser=asyncHandler(async (req,res)=>{
 })
 
   const logoutUser= asyncHandler( async (req,res)=>{
-    User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
       req.user._id,
       {
-        $set:{
-          refreshToken:undefined
+        $unset:{
+          refreshToken:1 // mtlb refreshtoken unset kr diya 1 ka mtlb true
         }
       },
       {
