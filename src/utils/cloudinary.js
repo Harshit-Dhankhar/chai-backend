@@ -23,8 +23,24 @@ const uploadOnCloudinary=async (localFilePath)=>{
 
         return response;
     } catch (error) {
+        fs.unlinkSync(localFilePath)
     return null;
 }
 }
 
-export {uploadOnCloudinary};
+const deleteFromCloudinary=async(avatarPublicId){
+    try {
+        if(!avatarPublicId) return null;
+
+        //delete the file from cloudinary
+
+        const response=await cloudinary.uploader.destroy(avatarPublicId);
+
+        return response;
+    } catch (error) {
+        return null;
+    }
+}
+export {uploadOnCloudinary,
+     deleteFromCloudinary,
+};
